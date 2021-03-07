@@ -1,5 +1,3 @@
-let playerswitch = true;
-
 //Game board module
 
 const gameBoard = (function(){
@@ -37,15 +35,23 @@ const gameBoard = (function(){
 //Display Controller Module
 
 const displayController = (function(){
-    const declarePlayerTurn = () => {
-    currentPlayer = getPlayerTurn();
-    currentToken = undefined;
-    if(currentPlayer === "player1"){
-        currentToken = "X";
-    } else if(currentPlayer === "player2"){
-        currentToken = "O";
+    const getPlayerTurn = () => {
+        activeSpaces = 0;
+        for(let i = 0; i < gameBoard.boardArr.length; i++){
+            if(gameBoard.boardArr[i] !== ""){
+                activeSpaces++;
+            }
+        }
+        if(activeSpaces === gameBoard.boardArr.length){
+            console.log('Game Over');
+        } else if(activeSpaces % 2 === 0){
+            currentPlayer = `${player1.name}`;
+            currentToken = `${player1.token}`;
+        } else {
+            currentPlayer = `${player2.name}`;
+            currentToken = `${player2.token}`;
+        } 
     }
-}
     
     const placeMarker = () => {
         boardSpaces = document.querySelectorAll(".board-space");
@@ -57,51 +63,52 @@ const displayController = (function(){
                 playertoken.innerHTML = currentToken;
                 space.appendChild(playertoken);
                 console.log(`${currentPlayer} places a ${currentToken} placed on ${space.id}`);
-                gameBoard.boardArr.push(currentToken);
+                gameBoard.boardArr[space.id[space.id.length-1]] = currentToken;
+                nextTurn();
                 }
                 })
             }) 
-            
         }
-    
-        return { placeMarker, declarePlayerTurn }
+        return { placeMarker, getPlayerTurn }
 })();
 
 //Player Function Factory
 
 const createPlayer = (name, token) => {
-    const isPlayerTurn = () => {
-        if(getPlayerTurn() === name){
-            return true;
-        } else return false;
-    }
     const makeMove = () => {
-    
+       displayController.getPlayerTurn();
        displayController.placeMarker();
-      getPlayerTurn();
     }
-  return { name, token, makeMove, isPlayerTurn };
+  return { name, token, makeMove };
 };
 
-function getPlayerTurn(){
-    let activeSpaces = 0;
-    for(let i = 0; i < gameBoard.boardArr.length; i++){
-        if(gameBoard.boardArr[i] === "X" || gameBoard.boardArr[i] === "O"){
-            activeSpaces++;
-        }
-    }
-    if(gameBoard.boardArr.length % activeSpaces === 0){
-        return "player2";
-    } else return "player1";
+//Utiliy Functions
+
+function startGame(){
+    gameBoard.renderBoard();
+    player1 = createPlayer("player1","X");
+    player2 = createPlayer("player2","O");
+    nextTurn();
 }
 
+function nextTurn(){
+    if(displayController.getPlayerTurn() === player1.name){
+        player1.makeMove();
+    } else player2.makeMove();
+}
 
-//Render Board And Create Players
+function gameLoop(){
+    const emptySpace = (elem) => elem === "";
+    if(gameBoard.boardArr.some(emptySpace)){
+        return true;
+    }  else return false;
+}
 
-gameBoard.renderBoard();
-let player1 = createPlayer("player1","X");
-let player2 = createPlayer("player2","O");
-displayController.declarePlayerTurn();
-player1.makeMove();
-player2.makeMove();
+//End of Functions
+
+
+//Start Game
+
+startGame();
+
 
