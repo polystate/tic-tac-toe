@@ -85,7 +85,6 @@ const displayController = (function(){
         }
         if(activeSpaces === gameBoard.boardArr.length){
             if(!gameBoard.checkForWinner()){
-                console.log("It's a CAT!");
                 winnerText.innerHTML = `${blankSpace(4)}It's a CAT! (uh, that means tie...)<br>${blankSpace(7)}Click <a id = "restart" href="javascript:restartGame()">here</a> to play again!`;
             } 
 
@@ -99,10 +98,37 @@ const displayController = (function(){
         return currentPlayer;
     }
 
-    const nextTurn = () => {
+    const nextTurn = (winningspace) => {
         if(gameBoard.checkForWinner()){
-            console.log(`${currentPlayer} has won!`);
             winnerText.innerHTML = `${blankSpace(7)}${currentPlayer} has won!<br>Click <a id = "restart" href="javascript:restartGame()">here</a> to play again!`;
+            tokens = document.querySelectorAll(".board-space");
+            console.log(tokens);
+            // if(gameBoard.isDimensionWinner("row")){
+            //    switch(Number(winningspace)){
+            //        case 0:
+            //        case 1:
+            //        case 2:
+            //           tokens[0].style = `color: green`;
+            //           tokens[1].style = `color: green`;
+            //           tokens[2].style = `color: green`;
+            //           break;
+            //        case 3:
+            //        case 4:
+            //        case 5:
+            //            tokens[3].style = `color: green`;
+            //            tokens[4].style = `color: green`;
+            //            tokens[5].style = `color: green`;
+            //            break;
+            //         case 6:
+            //         case 7:
+            //         case 8:
+            //             tokens[6].style = `color: green`;
+            //             tokens[7].style = `color: green`;
+            //             tokens[8].style = `color: green`;
+            //             break;
+            //    }
+            // }
+            
             return currentPlayer;
         }
         if(getPlayerTurn() === player1.name){
@@ -119,9 +145,9 @@ const displayController = (function(){
                 playertoken.setAttribute("class","token");
                 playertoken.innerHTML = currentToken;
                 space.appendChild(playertoken);
-                console.log(`${currentPlayer} places a ${currentToken} placed on ${space.id}`);
+                console.log(`${currentPlayer} places a ${currentToken} on square ${space.id}`);
                 gameBoard.boardArr[space.id[space.id.length-1]] = currentToken;
-                nextTurn();
+                nextTurn(space.id[space.id.length-1]);
                 }
                 })
             }) 
@@ -139,7 +165,7 @@ const createPlayer = (name, token) => {
   return { name, token, makeMove };
 };
 
-//Utiliy Functions
+//Utility Functions
 
 function startGame(){
     gameBoard.renderBoard();
@@ -149,11 +175,8 @@ function startGame(){
 }
 
 function restartGame(){
-    console.log("Time to restart the game.");
     location.reload();
 }
-
-
 
 function blankSpace(num){
     spaceStr = "";
@@ -161,15 +184,6 @@ function blankSpace(num){
         spaceStr += "&nbsp;"
     }
     return spaceStr;
-}
-
-
-
-function gameLoop(){
-    const emptySpace = (elem) => elem === "";
-    if(gameBoard.boardArr.some(emptySpace)){
-        return true;
-    }  else return false;
 }
 
 function chunkArrayInGroups(arr, size) {
@@ -182,9 +196,16 @@ function chunkArrayInGroups(arr, size) {
 
 //End of Functions
 
-
 //Start Game
 
 startGame();
 
 
+
+
+// function gameLoop(){
+//     const emptySpace = (elem) => elem === "";
+//     if(gameBoard.boardArr.some(emptySpace)){
+//         return true;
+//     }  else return false;
+// }
