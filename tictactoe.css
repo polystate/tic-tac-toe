@@ -10,9 +10,25 @@ body{
     grid-template-columns: 1fr 1fr 1fr;
     width: 30rem;
     margin: 0 auto;
-    margin-top: 12rem;
+    margin-top: 6rem; /*Before it was 12rem*/
     height: 30rem;
     cursor: pointer;
+}
+
+
+#announceWinner{
+    background: black;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    height: 10rem;
+}
+
+#winnerText{
+    color: white;
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+    font-size: 3rem;
+    
 }
 
 .board-space{
@@ -36,4 +52,9 @@ body{
     font-weight: bolder;
     font-size: 7.5rem;
     margin-top: 7rem;
+}
+
+#restart{
+    color: red;
+    text-decoration: none;
 }
