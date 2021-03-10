@@ -1,13 +1,12 @@
 //Game board module
 
 const gameBoard = (function(){
+    const board = document.getElementById("board");
     const boardArr = new Array(9).fill("");
     const numToWin = Math.floor(Math.sqrt(boardArr.length));
-    const renderBoard = () => {
+    const renderBoard = (lineType) => {
         //Render Board to HTML
-        const board = document.getElementById("board");
         let spaceID = 0;
-        const lineType = "2px solid white";
         boardArr.forEach(() => {
         boardSpace = document.createElement("p");
             boardSpace.setAttribute("class","board-space");
@@ -30,12 +29,18 @@ const gameBoard = (function(){
             spaceID++;
         })
     }
+    //Check for three in a row in rows, columns, and diagonals
     const isDimensionWinner = (dim) => {
+        const chunkArrayInGroups = (arr, size) => {
+            newArr = [];
+            for (let i = 0; i < arr.length; i += size) {
+              newArr.push(arr.slice(i, i + size));
+            }
+            return newArr;
+          }
         gameArr = [];
         if(dim === "row"){
-            for(let i = 0; i < boardArr.length; i+=numToWin){
-            gameArr.push(boardArr.slice(i,i+numToWin));
-            }
+            gameArr = [...chunkArrayInGroups(boardArr,numToWin)];
         } else if(dim === "column"){
             columns = 0;
             while(columns < numToWin){
@@ -66,16 +71,113 @@ const gameBoard = (function(){
         return true;
         } return false;
     }
-    const changeBoardColors = () => {
-        
+    const updateBoardResult = (result,winningspace) => {
+        if(result === "draw"){
+            setTimeout(catStyle,1700);
+            function catStyle(){
+            catSound = document.createElement("audio");
+            catSound.setAttribute("autoplay","autoplay");
+            catSound.innerHTML = "<source src=meow.mp3 />"
+            board.innerHTML = "";
+            catPhoto = document.createElement("img");
+            catPhoto.setAttribute("src","cat.jpg");
+            catPhoto.setAttribute("id","catphoto");
+            catPhoto.setAttribute("title","Scratch that cat! It's a tie!")
+            board.appendChild(catSound);
+            board.appendChild(catPhoto);
+            }
+        } else {
+            if(isDimensionWinner("row")){
+                rowObj = {
+                row1: [0,1,2],
+                row2: [3,4,5],
+                row3: [6,7,8]
+                }
+                markWinningLine(rowObj,winningspace);
+                clapping = document.createElement("audio");
+                clapping.setAttribute("autoplay","autoplay");
+                clapping.innerHTML = "<source src=clapping.mp3 />"
+                board.appendChild(clapping);
+            } else if(isDimensionWinner("column")){
+                colObj = {
+                    col1: [0,3,6],
+                    col2: [1,4,7],
+                    col3: [2,5,8]
+                }
+                markWinningLine(colObj,winningspace);
+                clapping = document.createElement("audio");
+                clapping.setAttribute("autoplay","autoplay");
+                clapping.innerHTML = "<source src=clapping.mp3 />"
+                board.appendChild(clapping);
+            } else {
+                diagObj = {
+                    diag1: [0,4,8],
+                    diag2: [2,4,6]
+                }
+                markWinningLine(diagObj,winningspace);
+                clapping = document.createElement("audio");
+                clapping.setAttribute("autoplay","autoplay");
+                clapping.innerHTML = "<source src=clapping.mp3 />"
+                board.appendChild(clapping);
+            }
+        }
     }
-    return { renderBoard, boardArr, isDimensionWinner, checkForWinner, changeBoardColors };
+    
+    return { board, renderBoard, boardArr, isDimensionWinner, checkForWinner, updateBoardResult };
 })();
 
 //Display Controller Module
 
 const displayController = (function(){
     const winnerText = document.getElementById("winnerText");
+    const overlay = document.getElementById("overlay");
+    let menuAppear = false;
+    const blankSpace = (num) => {
+        spaceStr = "";
+        for(let i = 0; i < num; i++){
+            spaceStr += "&nbsp;"
+        }
+        return spaceStr;
+    }
+    const menuInput = () => {
+        p1name = document.getElementById("p1name").value;
+        p2name = document.getElementById("p2name").value;
+        p1token = document.getElementById("p1token").value;
+        p2token = document.getElementById("p2token").value;
+        //Defaults if nothing is entered
+        if(!p1name) p1name = "Player 1";
+        if(!p1token) p1token = "X";
+        if(!p2name) p2name = "Player 2";
+        if(!p2token) p2token = "O";
+        //
+        player1 = createPlayer(`${p1name}`,`${p1token}`);
+        player2 = createPlayer(`${p2name}`,`${p2token}`);
+    }
+    const toggleMenu = () => {
+        menu = document.getElementById("menu");
+        if(menuAppear) {menu.style = "display: unset;"}
+        else menu.style = "display: none;"
+        menuAppear = !menuAppear;
+    }
+    const startGame = () => {
+        localStorage.clear();
+        menuInput();
+        overlay.remove();
+        gameBoard.renderBoard("2px solid white");
+        displayController.nextTurn();
+    }
+    const restartMenu = () => {location.reload()};
+    const restartGame = () => {
+        localStorage.setItem("p1name",player1.name);
+        localStorage.setItem("p1token",player1.token);
+        localStorage.setItem("p2name",player2.name);
+        localStorage.setItem("p2token",player2.token);
+        gameBoard.boardArr = new Array(9).fill("");
+        for(let i = 0; i < boardSpaces.length; i++){
+            boardSpaces[i].innerHTML = "";
+        }
+        //Why checkWinner still returning true even after the board and array has been cleared. Find out.
+    };
     const getPlayerTurn = () => {
         activeSpaces = 0;
         for(let i = 0; i < gameBoard.boardArr.length; i++){
@@ -85,9 +187,9 @@ const displayController = (function(){
         }
         if(activeSpaces === gameBoard.boardArr.length){
             if(!gameBoard.checkForWinner()){
-                winnerText.innerHTML = `${blankSpace(4)}It's a CAT! (uh, that means tie...)<br>${blankSpace(7)}Click <a id = "restart" href="javascript:restartGame()">here</a> to play again!`;
+                winnerText.innerHTML = `${blankSpace(10)}It's a draw!<br>Click <a class = "restart" href="javascript:displayController.restartGame()">here</a> to play again!<br>${blankSpace(3)}...Or reopen the <a class = "restart" href="javascript:displayController.restartMenu()">menu</a>`;
+                gameBoard.updateBoardResult("draw");
             } 
-
         } else if(activeSpaces % 2 === 0){
             currentPlayer = `${player1.name}`;
             currentToken = `${player1.token}`;
@@ -99,39 +201,12 @@ const displayController = (function(){
     }
 
     const nextTurn = (winningspace) => {
+        //Check if there was a winner first
         if(gameBoard.checkForWinner()){
-            winnerText.innerHTML = `${blankSpace(7)}${currentPlayer} has won!<br>Click <a id = "restart" href="javascript:restartGame()">here</a> to play again!`;
-            tokens = document.querySelectorAll(".board-space");
-            console.log(tokens);
-            // if(gameBoard.isDimensionWinner("row")){
-            //    switch(Number(winningspace)){
-            //        case 0:
-            //        case 1:
-            //        case 2:
-            //           tokens[0].style = `color: green`;
-            //           tokens[1].style = `color: green`;
-            //           tokens[2].style = `color: green`;
-            //           break;
-            //        case 3:
-            //        case 4:
-            //        case 5:
-            //            tokens[3].style = `color: green`;
-            //            tokens[4].style = `color: green`;
-            //            tokens[5].style = `color: green`;
-            //            break;
-            //         case 6:
-            //         case 7:
-            //         case 8:
-            //             tokens[6].style = `color: green`;
-            //             tokens[7].style = `color: green`;
-            //             tokens[8].style = `color: green`;
-            //             break;
-            //    }
-            // }
-            
+            winnerText.innerHTML = `${blankSpace(7)}${currentPlayer} has won!<br>Click <a class = "restart" href="javascript:displayController.restartGame()">here</a> to play again!<br>${blankSpace(3)}...Or reopen the <a class = "restart" href="javascript:displayController.restartMenu()">menu</a>`;
+            gameBoard.updateBoardResult(`${currentPlayer}`,winningspace);
             return currentPlayer;
-        }
-        if(getPlayerTurn() === player1.name){
+        } else if(getPlayerTurn() === player1.name){
             player1.makeMove();
         } else player2.makeMove();
     }
@@ -150,9 +225,10 @@ const displayController = (function(){
                 nextTurn(space.id[space.id.length-1]);
                 }
                 })
+            
             }) 
         }
-        return { placeMarker, getPlayerTurn, nextTurn }
+        return { placeMarker, getPlayerTurn, nextTurn, startGame, restartGame, restartMenu, menuInput, toggleMenu }
 })();
 
 //Player Function Factory
@@ -165,47 +241,33 @@ const createPlayer = (name, token) => {
   return { name, token, makeMove };
 };
 
-//Utility Functions
-
-function startGame(){
-    gameBoard.renderBoard();
-    player1 = createPlayer("player1","X");
-    player2 = createPlayer("player2","O");
-    displayController.nextTurn();
-}
-
-function restartGame(){
-    location.reload();
-}
-
-function blankSpace(num){
-    spaceStr = "";
-    for(let i = 0; i < num; i++){
-        spaceStr += "&nbsp;"
+function markWinningLine(lineObj,winningspace){
+        spaces = document.querySelectorAll(".board-space");
+        lineWinningSpaces = findWinningLine(lineObj,winningspace);
+        for(let i = 0; i < lineWinningSpaces.length; i++){
+            spaces[lineWinningSpaces[i]].childNodes[0].style = "color: gold;";
+        }
     }
-    return spaceStr;
+
+
+function findWinningLine(lineObj,winningspace){
+    for(let prop in lineObj){
+        for(let space in lineObj[prop]){
+            if(winningspace == lineObj[prop][space]){
+                return lineObj[prop];
+            }
+        }
+    }
 }
 
-function chunkArrayInGroups(arr, size) {
-    let newArr = [];
-    for (let i = 0; i < arr.length; i += size) {
-      newArr.push(arr.slice(i, i + size));
-    }
-    return newArr;
-  }
 
-//End of Functions
+
+
 
 //Start Game
 
-startGame();
+// displayController.startGame();
 
 
 
 
-// function gameLoop(){
-//     const emptySpace = (elem) => elem === "";
-//     if(gameBoard.boardArr.some(emptySpace)){
-//         return true;
-//     }  else return false;
-// }

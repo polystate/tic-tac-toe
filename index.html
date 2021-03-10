@@ -10,11 +10,27 @@
     <title>Tic Tac Toe</title>
 </head>
 <body>
+    <div id = "overlay"><div id = "menu">
+        <h1>Tic Tac Toe doesn't have to be played with just Xs and Os...</h1>
+    <form id = "customize">
+        <div id = "form-section">
+        <label for="player1">Enter Player 1 Name Here:</label><br>
+        <input type="text" id="p1name" name="p1name" placeholder="Enter name" maxlength="12" minlength="1" required><br>
+        <label for="player1">Enter Player 1 Token Here:</label><br>
+        <input type="text" id="p1token" name="p1token" placeholder="Up to two characters" maxlength="2" minlength="1" required><br>
+        <label for="player2">Enter Player 2 Name Here:</label><br>
+        <input type="text" id="p2name" name="p2name" placeholder="Enter name" maxlength="12" minlength="1" required><br>
+        <label for="player2">Enter Player 2 Token Here:</label><br>
+        <input type="text" id="p2token" name="p2token" placeholder="Up to two characters" maxlength="2" minlength="1" required><br>
+        </div>
+    </form><button onclick="displayController.startGame()" form="customize">Start Game</button></div></div>
+    
     <div id = "announceWinner">
         <p id = "winnerText"><span id = "header">Tic Tac Toe</span></p>
     </div>
     <div id = "board">
         
     </div>
+    
 </body>
 </html>
