@@ -71,6 +71,28 @@ const gameBoard = (function(){
         return true;
         } return false;
     }
+    const markWinningLine = (lineObj,winningspace) => {
+        spaces = document.querySelectorAll(".board-space");
+        lineWinningSpaces = findWinningLine(lineObj,winningspace);
+        for(let i = 0; i < lineWinningSpaces.length; i++){
+            spaces[lineWinningSpaces[i]].childNodes[0].style = "color: gold;";
+        }
+    }
+    const findWinningLine = (lineObj,winningspace) => {
+        for(let prop in lineObj){
+            for(let space in lineObj[prop]){
+                if(winningspace == lineObj[prop][space]){
+                    return lineObj[prop];
+                }
+            }
+        }
+    }
+    const clappingSound = () => {
+        clapping = document.createElement("audio");
+        clapping.setAttribute("autoplay","autoplay");
+        clapping.innerHTML = "<source src=clapping.mp3 />"
+        board.appendChild(clapping);
+    }
     const updateBoardResult = (result,winningspace) => {
         if(result === "draw"){
             setTimeout(catStyle,1700);
@@ -94,10 +116,7 @@ const gameBoard = (function(){
                 row3: [6,7,8]
                 }
                 markWinningLine(rowObj,winningspace);
-                clapping = document.createElement("audio");
-                clapping.setAttribute("autoplay","autoplay");
-                clapping.innerHTML = "<source src=clapping.mp3 />"
-                board.appendChild(clapping);
+                clappingSound();
             } else if(isDimensionWinner("column")){
                 colObj = {
                     col1: [0,3,6],
@@ -105,20 +124,14 @@ const gameBoard = (function(){
                     col3: [2,5,8]
                 }
                 markWinningLine(colObj,winningspace);
-                clapping = document.createElement("audio");
-                clapping.setAttribute("autoplay","autoplay");
-                clapping.innerHTML = "<source src=clapping.mp3 />"
-                board.appendChild(clapping);
+                clappingSound();
             } else {
                 diagObj = {
                     diag1: [0,4,8],
                     diag2: [2,4,6]
                 }
                 markWinningLine(diagObj,winningspace);
-                clapping = document.createElement("audio");
-                clapping.setAttribute("autoplay","autoplay");
-                clapping.innerHTML = "<source src=clapping.mp3 />"
-                board.appendChild(clapping);
+                clappingSound();
             }
         }
     }
@@ -165,19 +178,8 @@ const displayController = (function(){
         overlay.remove();
         gameBoard.renderBoard("2px solid white");
         displayController.nextTurn();
-    }
-    const restartMenu = () => {location.reload()};
-    const restartGame = () => {
-        localStorage.setItem("p1name",player1.name);
-        localStorage.setItem("p1token",player1.token);
-        localStorage.setItem("p2name",player2.name);
-        localStorage.setItem("p2token",player2.token);
-        gameBoard.boardArr = new Array(9).fill("");
-        for(let i = 0; i < boardSpaces.length; i++){
-            boardSpaces[i].innerHTML = "";
-        }
-        //Why checkWinner still returning true even after the board and array has been cleared. Find out.
     };
+    const restartGame = () => {location.reload();};
     const getPlayerTurn = () => {
         activeSpaces = 0;
         for(let i = 0; i < gameBoard.boardArr.length; i++){
@@ -187,7 +189,7 @@ const displayController = (function(){
         }
         if(activeSpaces === gameBoard.boardArr.length){
             if(!gameBoard.checkForWinner()){
-                winnerText.innerHTML = `${blankSpace(10)}It's a draw!<br>Click <a class = "restart" href="javascript:displayController.restartGame()">here</a> to play again!<br>${blankSpace(3)}...Or reopen the <a class = "restart" href="javascript:displayController.restartMenu()">menu</a>`;
+                winnerText.innerHTML = `${blankSpace(10)}It's a draw!<br>Click <a class = "restart" href="javascript:displayController.restartGame()">here</a> to play again!`;
                 gameBoard.updateBoardResult("draw");
             } 
         } else if(activeSpaces % 2 === 0){
@@ -203,7 +205,7 @@ const displayController = (function(){
     const nextTurn = (winningspace) => {
         //Check if there was a winner first
         if(gameBoard.checkForWinner()){
-            winnerText.innerHTML = `${blankSpace(7)}${currentPlayer} has won!<br>Click <a class = "restart" href="javascript:displayController.restartGame()">here</a> to play again!<br>${blankSpace(3)}...Or reopen the <a class = "restart" href="javascript:displayController.restartMenu()">menu</a>`;
+            winnerText.innerHTML = `${blankSpace(7)}${currentPlayer} has won!<br>Click <a class = "restart" href="javascript:displayController.restartGame()">here</a> to play again!`;
             gameBoard.updateBoardResult(`${currentPlayer}`,winningspace);
             return currentPlayer;
         } else if(getPlayerTurn() === player1.name){
@@ -220,7 +222,9 @@ const displayController = (function(){
                 playertoken.setAttribute("class","token");
                 playertoken.innerHTML = currentToken;
                 space.appendChild(playertoken);
-                console.log(`${currentPlayer} places a ${currentToken} on square ${space.id}`);
+                headerText = document.getElementById("header");
+                headerText.style = "font-size: 2.5rem;"
+                headerText.innerText = `${currentPlayer} places ${currentToken} on space ${Number(space.id[space.id.length-1])+1}`
                 gameBoard.boardArr[space.id[space.id.length-1]] = currentToken;
                 nextTurn(space.id[space.id.length-1]);
                 }
@@ -228,7 +232,7 @@ const displayController = (function(){
             
             }) 
         }
-        return { placeMarker, getPlayerTurn, nextTurn, startGame, restartGame, restartMenu, menuInput, toggleMenu }
+        return { placeMarker, getPlayerTurn, nextTurn, startGame, restartGame, menuInput, toggleMenu }
 })();
 
 //Player Function Factory
@@ -240,34 +244,5 @@ const createPlayer = (name, token) => {
     }
   return { name, token, makeMove };
 };
-
-function markWinningLine(lineObj,winningspace){
-        spaces = document.querySelectorAll(".board-space");
-        lineWinningSpaces = findWinningLine(lineObj,winningspace);
-        for(let i = 0; i < lineWinningSpaces.length; i++){
-            spaces[lineWinningSpaces[i]].childNodes[0].style = "color: gold;";
-        }
-    }
-
-
-function findWinningLine(lineObj,winningspace){
-    for(let prop in lineObj){
-        for(let space in lineObj[prop]){
-            if(winningspace == lineObj[prop][space]){
-                return lineObj[prop];
-            }
-        }
-    }
-}
-
-
-
-
-
-//Start Game
-
-// displayController.startGame();
-
-
 
 
